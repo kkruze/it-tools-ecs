@@ -1,5 +1,3 @@
-# Ask AWS who this Terraform run is authenticated as.
-# We use the account ID later when building ARNs.
 data "aws_caller_identity" "current" {}
 
 
@@ -36,13 +34,15 @@ resource "aws_iam_role" "github_actions" {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
 
-          "token.actions.githubusercontent.com:sub" = "repo:${local.github_owner}@${local.github_owner_id}/${local.github_repo}@${local.github_repo_id}:ref:refs/heads/${local.github_branch}"
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:${local.github_owner}@${local.github_owner_id}/${local.github_repo}@${local.github_repo_id}:ref:refs/heads/${local.github_branch}",
+            "repo:${local.github_owner}@${local.github_owner_id}/${local.github_repo}@${local.github_repo_id}:pull_request"
+          ]
         }
       }
     }]
   })
 }
-
 
 # What GitHub Actions is allowed to do AFTER it assumes the role.
 resource "aws_iam_role_policy" "github_actions" {
