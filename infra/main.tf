@@ -25,6 +25,7 @@ module "alb" {
   alb_sg            = module.security.alb_sg_id
   public_subnet_ids = module.vpc.public_subnet_ids
   vpc_id            = module.vpc.vpc_id
+  certificate_arn   = module.acm.certificate_arn
 
 }
 
@@ -45,4 +46,27 @@ module "ecs" {
   depends_on = [
     module.alb
   ]
+}
+
+data "aws_route53_zone" "domain" {
+  name = "magidali.com"
+}
+
+module "acm" {
+  source = "./modules/acm"
+
+  domain_name = "tm.magidali.com"
+  zone_id     = data.aws_route53_zone.domain.zone_id
+}
+
+resource "aws_route53_record" "app" {
+  zone_id = data.aws_route53_zone.domain.zone_id
+  name    = "tm.magidali.com"
+  type    = "A"
+
+  alias {
+    name                   = module.alb.alb_dns_name
+    zone_id                = module.alb.alb_zone_id
+    evaluate_target_health = true
+  }
 }

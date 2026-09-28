@@ -1,11 +1,14 @@
 output "target_group_arn" {
-  value = aws_lb_target_group.alb_tg.arn
+  description = "ARN of the ALB target group"
+  value       = aws_lb_target_group.alb_tg.arn
 }
 
 output "alb_dns_name" {
-  value = aws_lb.alb.dns_name
+  description = "DNS name of the Application Load Balancer"
+  value       = aws_lb.alb.dns_name
 }
 
 output "alb_zone_id" {
-  value = aws_lb.alb.zone_id
+  description = "Hosted zone ID of the Application Load Balancer"
+  value       = aws_lb.alb.zone_id
 }

@@ -98,7 +98,8 @@ resource "aws_iam_role_policy" "github_actions" {
           "ecr:PutImage",
           "ecr:DescribeRepositories",
           "ecr:DescribeImages",
-          "ecr:ListImages"
+          "ecr:ListImages",
+          "ecr:ListTagsForResource"
         ]
 
         Resource = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/${var.project_name}-ecr"
