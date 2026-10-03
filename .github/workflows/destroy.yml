@@ -1,35 +1,36 @@
-name: Terraform Destroy
+name: Destroy AWS Infrastructure
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 permissions:
-    id-token: write
-    contents: read
+  id-token: write
+  contents: read
 
 jobs:
-    terraform-destroy:
-        runs-on: ubuntu-latest
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
 
-        defaults:
-            run:
-                working-directory: infra
+    defaults:
+      run:
+        working-directory: infra
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-            - name: Setup Terraform
-              uses: hashicorp/setup-terraform@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
 
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v6
-              with:
-                  role-to-assume: arn:aws:iam::157664039021:role/it-tools-github-actions-role
-                  aws-region: us-east-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::157664039021:role/it-tools-github-actions-role
+          aws-region: us-east-1
 
-            - name: Initialize Terraform
-              run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-            - name: Destroy infrastructure
-              run: terraform destroy -auto-approve -var="image_tag=destroy"
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -var="image_tag=${{ github.sha }}"
