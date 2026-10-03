@@ -14,9 +14,16 @@ COPY /app ./
 
 RUN pnpm build
 
+
 # Stage 2: Application Runtime
 
 FROM nginxinc/nginx-unprivileged:alpine AS runtime
+
+USER root
+
+RUN apk upgrade --no-cache pcre2
+
+USER 101
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html/
