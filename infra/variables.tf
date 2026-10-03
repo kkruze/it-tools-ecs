@@ -57,3 +57,15 @@ variable "image_tag" {
   type        = string
   description = "Docker image tag deployed to ECS"
 }
+
+variable "root_domain" {
+  type        = string
+  description = "Root Route 53 hosted zone"
+  default     = "magidali.com"
+}
+
+variable "domain_name" {
+  type        = string
+  description = "Fully qualified domain name for the application"
+  default     = "tm.magidali.com"
+}

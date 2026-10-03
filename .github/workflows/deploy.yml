@@ -4,6 +4,13 @@ on:
     push:
         branches:
             - main
+        paths:
+            - "app/**"
+            - "Dockerfile"
+            - ".dockerignore"
+            - "nginx.conf"
+            - "infra/**"
+            - ".github/workflows/deploy.yml"
 
     workflow_dispatch:
 
@@ -32,17 +39,64 @@ jobs:
             - name: Setup Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            - name: Build, tag, and push docker image to Amazon ECR
+            - name: Build Docker image
               env:
                   REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   REPOSITORY: it-tools-ecr
                   IMAGE_TAG: ${{ github.sha }}
               run: |
                   docker buildx build \
-                  --platform linux/amd64 \
-                  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-                  --push \
-                  .
+                    --platform linux/amd64 \
+                    -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
+                    --load \
+                    .
+
+            - name: Test Docker container
+              env:
+                  REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  REPOSITORY: it-tools-ecr
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  docker run -d \
+                    --name it-tools-test \
+                    -p 8080:8080 \
+                    $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+                  for i in {1..10}; do
+                    if curl --fail --silent --show-error http://localhost:8080/health; then
+                      echo "Container health check passed"
+                      docker stop it-tools-test
+                      docker rm it-tools-test
+                      exit 0
+                    fi
+
+                    echo "Waiting for container..."
+                    sleep 3
+                  done
+
+                  echo "Container health check failed"
+                  docker logs it-tools-test
+                  docker stop it-tools-test || true
+                  docker rm it-tools-test || true
+                  exit 1
+
+            - name: Scan Docker image with Trivy
+              uses: aquasecurity/trivy-action@v0.36.0
+              with:
+                  image-ref: "${{ steps.login-ecr.outputs.registry }}/it-tools-ecr:${{ github.sha }}"
+                  format: "table"
+                  exit-code: "1"
+                  ignore-unfixed: true
+                  vuln-type: "os,library"
+                  severity: "CRITICAL,HIGH"
+
+            - name: Push Docker image to Amazon ECR
+              env:
+                  REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  REPOSITORY: it-tools-ecr
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
     terraform-deploy:
         needs: build-and-push
@@ -56,7 +110,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v5
 
-            - name: Setup terraform
+            - name: Setup Terraform
               uses: hashicorp/setup-terraform@v4
 
             - name: Configure AWS credentials
@@ -65,13 +119,13 @@ jobs:
                   role-to-assume: arn:aws:iam::157664039021:role/it-tools-github-actions-role
                   aws-region: us-east-1
 
-            - name: Initialize terraform
+            - name: Initialize Terraform
               run: terraform init
 
-            - name: Plan terraform
+            - name: Plan Terraform
               run: terraform plan -var="image_tag=${{ github.sha }}" -out=tfplan
 
-            - name: Apply terraform
+            - name: Apply Terraform
               run: terraform apply tfplan
 
     health-check:
@@ -79,7 +133,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Run a health check
+            - name: Run post-deployment health check
               run: |
                   for i in {1..10}; do
                     if curl --fail --silent --show-error https://tm.magidali.com/health; then
