@@ -11,7 +11,7 @@ resource "aws_subnet" "public_a" {
   availability_zone = var.availability_zone_a
 
   tags = {
-    Name = "${var.project_name}-public_a"
+    Name = "${var.project_name}-public-a"
   }
 }
 
@@ -21,7 +21,7 @@ resource "aws_subnet" "public_b" {
   availability_zone = var.availability_zone_b
 
   tags = {
-    Name = "${var.project_name}-public_b"
+    Name = "${var.project_name}-public-b"
   }
 }
 

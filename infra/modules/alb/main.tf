@@ -1,10 +1,14 @@
 resource "aws_lb" "alb" {
-  name               = "${var.project_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [var.alb_sg]
-  subnets            = var.public_subnet_ids
+  name                       = "${var.project_name}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [var.alb_sg]
+  subnets                    = var.public_subnet_ids
+  drop_invalid_header_fields = true
 
+  tags = {
+    Name = "${var.project_name}-alb"
+  }
 }
 
 resource "aws_lb_target_group" "alb_tg" {
@@ -24,6 +28,10 @@ resource "aws_lb_target_group" "alb_tg" {
     healthy_threshold   = 3
     unhealthy_threshold = 3
     matcher             = "200"
+  }
+
+  tags = {
+    Name = "${var.project_name}-alb-tg"
   }
 }
 

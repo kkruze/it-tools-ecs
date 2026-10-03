@@ -5,6 +5,10 @@ resource "aws_acm_certificate" "cert" {
   lifecycle {
     create_before_destroy = true
   }
+
+  tags = {
+    Name = "${var.project_name}-cert"
+  }
 }
 
 resource "aws_route53_record" "validation" {

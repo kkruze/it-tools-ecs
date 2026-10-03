@@ -11,4 +11,13 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = {
+      Project     = "it-tools-ecs"
+      Environment = "dev"
+      ManagedBy   = "Terraform"
+      Owner       = "Magdi Ali"
+    }
+  }
 }

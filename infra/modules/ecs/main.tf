@@ -5,6 +5,10 @@ resource "aws_ecs_cluster" "ecs" {
     name  = "containerInsights"
     value = "enabled"
   }
+
+  tags = {
+    Name = "${var.project_name}-cluster"
+  }
 }
 
 resource "aws_iam_role" "ecs_execution_role" {
@@ -25,6 +29,10 @@ resource "aws_iam_role" "ecs_execution_role" {
       }
     ]
   })
+
+  tags = {
+    Name = "${var.project_name}-ecs-execution-role"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
@@ -35,6 +43,10 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}"
   retention_in_days = 7
+
+  tags = {
+    Name = "${var.project_name}-logs"
+  }
 }
 
 resource "aws_ecs_task_definition" "app" {
@@ -71,6 +83,10 @@ resource "aws_ecs_task_definition" "app" {
       }
     }
   ])
+
+  tags = {
+    Name = "${var.project_name}-task"
+  }
 }
 
 resource "aws_ecs_service" "service" {
@@ -98,4 +114,8 @@ resource "aws_ecs_service" "service" {
   depends_on = [
     aws_iam_role_policy_attachment.ecs_execution_policy
   ]
+
+  tags = {
+    Name = "${var.project_name}-service"
+  }
 }

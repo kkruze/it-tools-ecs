@@ -26,7 +26,6 @@ module "alb" {
   public_subnet_ids = module.vpc.public_subnet_ids
   vpc_id            = module.vpc.vpc_id
   certificate_arn   = module.acm.certificate_arn
-
 }
 
 data "aws_ecr_repository" "app" {
@@ -49,19 +48,20 @@ module "ecs" {
 }
 
 data "aws_route53_zone" "domain" {
-  name = "magidali.com"
+  name = var.root_domain
 }
 
 module "acm" {
   source = "./modules/acm"
 
-  domain_name = "tm.magidali.com"
-  zone_id     = data.aws_route53_zone.domain.zone_id
+  project_name = var.project_name
+  domain_name  = var.domain_name
+  zone_id      = data.aws_route53_zone.domain.zone_id
 }
 
 resource "aws_route53_record" "app" {
   zone_id = data.aws_route53_zone.domain.zone_id
-  name    = "tm.magidali.com"
+  name    = var.domain_name
   type    = "A"
 
   alias {
