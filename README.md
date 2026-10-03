@@ -2,7 +2,7 @@
 
 A production-style DevOps project that deploys **IT-Tools** to **AWS ECS Fargate** using Docker, Terraform, GitHub Actions, Route 53, ACM, and Amazon ECR.
 
-The project demonstrates a complete deployment workflow from **build → test → scan → provision → deploy → validate**.
+The project demonstrates a complete deployment lifecycle from **build → test → scan → provision → deploy → validate → destroy**.
 
 ## Architecture
 
@@ -40,6 +40,7 @@ The demo shows the application running through the custom HTTPS domain and respo
 - Added Terraform validation with TFLint and Checkov
 - Added post-deployment `/health` verification
 - Used S3 for remote Terraform state
+- Added a manually triggered Terraform destroy workflow to remove runtime infrastructure
 
 ## CI/CD
 
@@ -76,6 +77,22 @@ Terraform Apply
 Deploy to ECS Fargate
         ↓
 Verify Live /health Endpoint
+```
+
+### Infrastructure Destroy
+
+Runtime infrastructure is removed through a manually triggered GitHub Actions workflow:
+
+```text
+GitHub Actions
+      ↓
+AWS OIDC Authentication
+      ↓
+Terraform Init
+      ↓
+Terraform Destroy
+      ↓
+AWS Runtime Infrastructure Removed
 ```
 
 ## AWS Infrastructure
@@ -158,6 +175,10 @@ The deployment pipeline required AWS access without storing permanent credential
 
 ![Health Check](docs/screenshots/health-check.png)
 
+### Infrastructure Destroy
+
+![Destroy Workflow](docs/screenshots/destroy-workflow.png)
+
 ## Tech Stack
 
 **AWS:** ECS Fargate, ECR, Application Load Balancer, Route 53, ACM, VPC, IAM, CloudWatch, S3
@@ -189,7 +210,7 @@ The deployment pipeline required AWS access without storing permanent credential
 Provision → Deploy → Validate → Destroy
 ```
 
-The project is designed so the runtime AWS infrastructure can be destroyed after testing and documentation are complete, avoiding unnecessary cloud costs.
+The project is designed so runtime AWS infrastructure can be destroyed after testing and documentation are complete, helping avoid unnecessary cloud costs.
 
 ---
 
